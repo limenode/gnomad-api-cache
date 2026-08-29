@@ -10,6 +10,9 @@ dependencies = [
     "tqdm>=4.66,<5",
 ]
 
+[project.scripts]
+gnomad-api-cache = "gnomad_api_cache.cli:main"
+
 # to_parquet imports pyarrow lazily, so JSON and CSV/TSV export work without it.
 [project.optional-dependencies]
 parquet = ["pyarrow>=25.0.0,<26"]
@@ -17,8 +20,7 @@ parquet = ["pyarrow>=25.0.0,<26"]
 [dependency-groups]
 dev = [
     "ipykernel>=7.3.0,<8",
-    "pandas>=3.0.5,<4",
-    "basedpyright>=1.39,<2",
+    "pandas>=3.0.5,<4"
 ]
 
 [build-system]
