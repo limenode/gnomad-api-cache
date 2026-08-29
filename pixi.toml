@@ -10,7 +10,7 @@ version = "0.1.0"
 python = ">=3.14.7,<3.15"
 
 [pypi-dependencies]
-gnomad-api-cache = { path = ".", editable = true, extras = ["parquet"] }
+gnomad-api-cache = { path = ".", editable = true }
 
 # Dev-only tools.
 [feature.dev.pypi-dependencies]

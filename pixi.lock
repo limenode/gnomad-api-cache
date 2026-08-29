@@ -484,9 +484,9 @@ packages:
   name: gnomad-api-cache
   requires_dist:
   - cyvcf2>=0.34.0,<0.35
+  - pyarrow>=25.0.0,<26
   - requests>=2.32,<3
   - tqdm>=4.66,<5
-  - pyarrow>=25.0.0,<26 ; extra == 'parquet'
   requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl
   name: certifi

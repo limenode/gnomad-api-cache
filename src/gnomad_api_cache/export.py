@@ -303,8 +303,9 @@ def to_parquet(
 ) -> int:
     """Write flattened rows as Parquet, ready for pandas/polars/duckdb.
 
-    pyarrow is imported here rather than at module scope so that the JSON and
-    CSV exports keep working without it installed.
+    pyarrow is imported here rather than at module scope to keep it off the
+    import path of callers that only ever export JSON or CSV; loading it
+    costs noticeably more than the rest of the package combined.
     """
     import pyarrow
     import pyarrow.parquet

@@ -61,7 +61,7 @@ jobs:
       - name: Install the built wheel
         run: |
           WHEEL=$(ls dist/*.whl)
-          python -m pip install "${WHEEL}[parquet]"
+          python -m pip install "${WHEEL}"
       - name: Smoke-test both entry points
         run: |
           gnomad-api-cache --version

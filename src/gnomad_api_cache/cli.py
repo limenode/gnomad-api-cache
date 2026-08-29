@@ -264,11 +264,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return EXIT_ERROR
     except ImportError as exc:
-        # to_parquet imports pyarrow lazily so the base install stays light.
+        # Every export dependency ships with the package, so this means a
+        # damaged environment rather than a missing optional install.
         print(f"error: {exc}", file=sys.stderr)
         print(
-            "hint: parquet output needs the extra: "
-            "pip install 'gnomad-api-cache[parquet]'",
+            "hint: the install looks incomplete; try "
+            "pip install --force-reinstall gnomad-api-cache",
             file=sys.stderr,
         )
         return EXIT_ERROR
