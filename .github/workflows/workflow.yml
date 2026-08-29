@@ -1,11 +1,109 @@
 name: Publish to PyPI
 
+# Build once, verify that single artifact across the whole supported Python
+# range, then publish it: TestPyPI on a manual run (a dry run you can repeat),
+# PyPI when a GitHub Release is published. Authentication is PyPI Trusted
+# Publishing (OIDC) — no API tokens and no stored secrets.
 on:
-    release:
-        types: [published]
-    workflow_dispatch:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# Least privilege by default; the two publish jobs opt into id-token below.
+permissions:
+  contents: read
+
+# Never let two publish runs race for the same version.
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-    build:
-        name: Build distribution
-        runs-on: ubuntu-latest
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install build backend
+        run: python -m pip install --upgrade build
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Check metadata renders on PyPI
+        run: |
+          python -m pip install --upgrade twine
+          python -m twine check dist/*
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  verify:
+    name: Verify wheel on Python ${{ matrix.python-version }}
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install the built wheel
+        run: |
+          WHEEL=$(ls dist/*.whl)
+          python -m pip install "${WHEEL}[parquet]"
+      - name: Smoke-test both entry points
+        run: |
+          gnomad-api-cache --version
+          python -m gnomad_api_cache --help > /dev/null
+          python -c "from gnomad_api_cache import VariantCache, read_vcf, fetch_gnomad"
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: [build, verify]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/gnomad-api-cache
+    permissions:
+      id-token: write          # required for OIDC trusted publishing
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build, verify]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/gnomad-api-cache
+    permissions:
+      id-token: write          # required for OIDC trusted publishing
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
