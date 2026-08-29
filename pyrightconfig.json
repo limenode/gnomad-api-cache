@@ -3,7 +3,8 @@
   "extraPaths": ["src"],
   "stubPath": "typings",
   "venvPath": ".pixi/envs",
-  "venv": "default",
+  "venv": "dev",
   "allowedUntypedLibraries": ["cyvcf2"],
+  "pythonVersion": "3.11",
   "typeCheckingMode": "basic",
 }

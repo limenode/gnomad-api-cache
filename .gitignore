@@ -4,3 +4,9 @@
 
 # pycache
 __pycache__/
+
+# scratch
+scratch/
+
+# data
+data/

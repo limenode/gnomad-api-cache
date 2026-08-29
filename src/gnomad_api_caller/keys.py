@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 
@@ -46,7 +48,7 @@ class VariantKey:
         return self.chrom == "M"
 
     @classmethod
-    def from_parts(cls, chrom: str, pos: int | str, ref: str, alt: str) -> "VariantKey":
+    def from_parts(cls, chrom: str, pos: int | str, ref: str, alt: str) -> VariantKey:
         """Build a key from raw record fields, canonicalizing and validating."""
         c = normalize_chrom(chrom)
         r = str(ref).strip().upper()
@@ -68,7 +70,7 @@ class VariantKey:
         return cls(chrom=c, pos=p, ref=r, alt=a)
 
     @classmethod
-    def from_id(cls, variant_id: str) -> "VariantKey":
+    def from_id(cls, variant_id: str) -> VariantKey:
         """Parse a "chrom-pos-ref-alt" string, e.g. from a text file or the cache."""
         parts = str(variant_id).strip().split("-")
         if len(parts) != 4:

@@ -21,14 +21,20 @@ Three columns carry the bookkeeping the fetch loop depends on:
   fetched_at     provenance, and a basis for staleness policies later.
 """
 
+from __future__ import annotations
+
 import json
 import sqlite3
 import zlib
-from collections.abc import Iterator, Mapping, Sequence
-from datetime import UTC, datetime
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
+from cyvcf2 import Variant
 
+if TYPE_CHECKING:
+    from gnomad_api_caller.fetch import FetchSummary
+
+from gnomad_api_caller._utils import _chunked, _now
 from gnomad_api_caller.keys import VariantKey
 from gnomad_api_caller.query import DEFAULT_DATASET, QUERY_VERSION
 
@@ -59,15 +65,6 @@ CREATE TABLE IF NOT EXISTS meta (
     value TEXT NOT NULL
 );
 """
-
-
-def _now() -> str:
-    return datetime.now(UTC).isoformat(timespec="seconds")
-
-
-def _chunked(items: Sequence[Any], size: int) -> Iterator[Sequence[Any]]:
-    for i in range(0, len(items), size):
-        yield items[i : i + size]
 
 
 class VariantCache(Mapping[str, "dict[str, Any] | None"]):
@@ -241,6 +238,57 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
                 )
         return out
 
+    # --- export ----------------------------------------------------------
+    #
+    # Thin delegations to gnomad_api_caller.export, which holds the flattening
+    # logic. Imported lazily so cache.py has no import-time dependency on the
+    # export module (or, through it, on pyarrow).
+
+    def to_json(
+        self,
+        path: str | Path,
+        variant_ids: Sequence[str] | None = None,
+        lines: bool = False,
+        indent: int | None = None,
+    ) -> int:
+        """Write records verbatim as JSON. See export.to_json."""
+        from gnomad_api_caller import export
+
+        return export.to_json(self, path, variant_ids, lines, indent)
+
+    def to_csv(
+        self,
+        path: str | Path,
+        variant_ids: Sequence[str] | None = None,
+        include_populations: bool = False,
+    ) -> int:
+        """Write flattened rows as CSV. See export.to_csv."""
+        from gnomad_api_caller import export
+
+        return export.to_csv(self, path, variant_ids, include_populations)
+
+    def to_tsv(
+        self,
+        path: str | Path,
+        variant_ids: Sequence[str] | None = None,
+        include_populations: bool = False,
+    ) -> int:
+        """Write flattened rows as TSV. See export.to_tsv."""
+        from gnomad_api_caller import export
+
+        return export.to_tsv(self, path, variant_ids, include_populations)
+
+    def to_parquet(
+        self,
+        path: str | Path,
+        variant_ids: Sequence[str] | None = None,
+        include_populations: bool = False,
+    ) -> int:
+        """Write flattened rows as Parquet. See export.to_parquet."""
+        from gnomad_api_caller import export
+
+        return export.to_parquet(self, path, variant_ids, include_populations)
+
     def status_counts(self) -> dict[str, int]:
         """Row counts by status -- a one-line health check on the cache."""
         return {
@@ -251,3 +299,30 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
                 (self.dataset,),
             )
         }
+
+    def fetch(self, variants: list[VariantKey], **kwargs) -> FetchSummary:
+        """Fetch missing records into this cache. See fetch.fetch_into."""
+        from gnomad_api_caller import fetch as _fetch
+
+        return _fetch.fetch_into(self, variants, **kwargs)
+
+    def fetch_vcf(
+        self,
+        vcf_path: str | Path,
+        retry_errors: bool = True,
+        retry_not_found: bool = False,
+        filter_function: Callable[[Variant], bool] | None = None,
+    ) -> FetchSummary:
+        """Read a VCF and fetch missing records into this cache."""
+        from gnomad_api_caller import fetch as _fetch
+        from gnomad_api_caller.adapters import vcf_adapter
+
+        return _fetch.fetch_into(
+            self,
+            vcf_adapter.read_vcf(
+                vcf_path,
+                filter_function=filter_function
+            ),
+            retry_errors=retry_errors,
+            retry_not_found=retry_not_found,
+        )

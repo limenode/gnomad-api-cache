@@ -1,8 +1,6 @@
 """GraphQL query construction for the gnomAD API."""
 
-import requests
-
-GNOMAD_API_URL = "https://gnomad.broadinstitute.org/api"
+from __future__ import annotations
 
 DEFAULT_DATASET = "gnomad_r4"
 
@@ -305,18 +303,3 @@ def parse_batch_response(
         vid: data.get(alias_for(i))
         for i, vid in enumerate(variant_ids)
     }
-
-def post_gnomad(query: str, variables: dict[str, str]) -> dict:
-    """POST a GraphQL query to the gnomAD API and return the JSON response.
-
-    Raises requests.RequestException on transport errors, or KeyError if the
-    response has no 'data' field.
-    """
-
-    response = requests.post(
-        GNOMAD_API_URL,
-        json={"query": query, "variables": variables},
-        timeout=30,
-    )
-    response.raise_for_status()
-    return response.json()
