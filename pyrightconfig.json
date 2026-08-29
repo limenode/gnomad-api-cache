@@ -1,0 +1,9 @@
+{
+  "include": ["src"],
+  "extraPaths": ["src"],
+  "stubPath": "typings",
+  "venvPath": ".pixi/envs",
+  "venv": "default",
+  "allowedUntypedLibraries": ["cyvcf2"],
+  "typeCheckingMode": "basic",
+}

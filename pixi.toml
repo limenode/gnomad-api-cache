@@ -1,0 +1,17 @@
+[workspace]
+channels = ["conda-forge", "bioconda"]
+name = "gnomad_api_caller"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = ">=3.14.7,<3.15"
+cyvcf2 = ">=0.34.0,<0.35"
+requests = ">=2.34.2,<3"
+ipykernel = ">=7.3.0,<8"
+tqdm = ">=4.70.0,<5"
+
+[pypi-dependencies]
+gnomad-api-caller = { path = ".", editable = true }
