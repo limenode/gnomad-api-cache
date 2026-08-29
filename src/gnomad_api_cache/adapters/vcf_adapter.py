@@ -9,7 +9,7 @@ from pathlib import Path
 
 from cyvcf2 import VCF, Variant
 
-from gnomad_api_caller.keys import (
+from gnomad_api_cache.keys import (
     CANONICAL_CHROMS,
     InvalidVariantError,
     VariantKey,

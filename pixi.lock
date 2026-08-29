@@ -481,7 +481,7 @@ packages:
   size: 118849
   timestamp: 1784250406640
 - pypi: ./
-  name: gnomad-api-caller
+  name: gnomad-api-cache
   requires_dist:
   - cyvcf2>=0.34.0,<0.35
   - requests>=2.32,<3

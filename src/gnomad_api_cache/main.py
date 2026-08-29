@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from cyvcf2 import Variant
 
-from gnomad_api_caller import VariantCache
+from gnomad_api_cache import VariantCache
 
 if __name__ == "__main__":
     vcf_file = "/lab01/Projects/Lionel_Projects/dukeData/vcf/duke_quartet.annovar_slivar.fix.vcf.gz"

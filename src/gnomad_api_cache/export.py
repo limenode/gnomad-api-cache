@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from gnomad_api_caller.cache import VariantCache
+    from gnomad_api_cache.cache import VariantCache
 
 # Predictors gnomAD v4 exposes; fixed so columns stay stable across exports
 # even when a given variant is missing some.

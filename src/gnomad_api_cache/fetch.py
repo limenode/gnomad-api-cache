@@ -9,11 +9,11 @@ from typing import Any
 import requests
 from tqdm import tqdm
 
-from gnomad_api_caller._utils import _chunked
-from gnomad_api_caller.cache import VariantCache
-from gnomad_api_caller.client import post_gnomad
-from gnomad_api_caller.keys import VariantKey
-from gnomad_api_caller.query import (
+from gnomad_api_cache._utils import _chunked
+from gnomad_api_cache.cache import VariantCache
+from gnomad_api_cache.client import post_gnomad
+from gnomad_api_cache.keys import VariantKey
+from gnomad_api_cache.query import (
     MAX_BATCH_SIZE,
     build_mitochondrial_query,
     build_variant_query,

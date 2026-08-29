@@ -32,11 +32,11 @@ from typing import TYPE_CHECKING, Any, Self
 from cyvcf2 import Variant
 
 if TYPE_CHECKING:
-    from gnomad_api_caller.fetch import FetchSummary
+    from gnomad_api_cache.fetch import FetchSummary
 
-from gnomad_api_caller._utils import _chunked, _now
-from gnomad_api_caller.keys import VariantKey
-from gnomad_api_caller.query import DEFAULT_DATASET, QUERY_VERSION
+from gnomad_api_cache._utils import _chunked, _now
+from gnomad_api_cache.keys import VariantKey
+from gnomad_api_cache.query import DEFAULT_DATASET, QUERY_VERSION
 
 # zlib level 6 measured ~8.1x on real gnomAD records (21.4 KB -> 2.6 KB mean)
 # at ~0.3 ms/record. Level 9 buys 2% more for 2x the time.
@@ -240,7 +240,7 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
 
     # --- export ----------------------------------------------------------
     #
-    # Thin delegations to gnomad_api_caller.export, which holds the flattening
+    # Thin delegations to gnomad_api_cache.export, which holds the flattening
     # logic. Imported lazily so cache.py has no import-time dependency on the
     # export module (or, through it, on pyarrow).
 
@@ -252,7 +252,7 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
         indent: int | None = None,
     ) -> int:
         """Write records verbatim as JSON. See export.to_json."""
-        from gnomad_api_caller import export
+        from gnomad_api_cache import export
 
         return export.to_json(self, path, variant_ids, lines, indent)
 
@@ -263,7 +263,7 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
         include_populations: bool = False,
     ) -> int:
         """Write flattened rows as CSV. See export.to_csv."""
-        from gnomad_api_caller import export
+        from gnomad_api_cache import export
 
         return export.to_csv(self, path, variant_ids, include_populations)
 
@@ -274,7 +274,7 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
         include_populations: bool = False,
     ) -> int:
         """Write flattened rows as TSV. See export.to_tsv."""
-        from gnomad_api_caller import export
+        from gnomad_api_cache import export
 
         return export.to_tsv(self, path, variant_ids, include_populations)
 
@@ -285,7 +285,7 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
         include_populations: bool = False,
     ) -> int:
         """Write flattened rows as Parquet. See export.to_parquet."""
-        from gnomad_api_caller import export
+        from gnomad_api_cache import export
 
         return export.to_parquet(self, path, variant_ids, include_populations)
 
@@ -302,7 +302,7 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
 
     def fetch(self, variants: list[VariantKey], **kwargs) -> FetchSummary:
         """Fetch missing records into this cache. See fetch.fetch_into."""
-        from gnomad_api_caller import fetch as _fetch
+        from gnomad_api_cache import fetch as _fetch
 
         return _fetch.fetch_into(self, variants, **kwargs)
 
@@ -314,8 +314,8 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
         filter_function: Callable[[Variant], bool] | None = None,
     ) -> FetchSummary:
         """Read a VCF and fetch missing records into this cache."""
-        from gnomad_api_caller import fetch as _fetch
-        from gnomad_api_caller.adapters import vcf_adapter
+        from gnomad_api_cache import fetch as _fetch
+        from gnomad_api_cache.adapters import vcf_adapter
 
         return _fetch.fetch_into(
             self,

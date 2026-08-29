@@ -1,6 +1,6 @@
 [workspace]
 channels = ["conda-forge", "bioconda"]
-name = "gnomad_api_caller"
+name = "gnomad_api_cache"
 platforms = ["linux-64"]
 version = "0.1.0"
 
@@ -10,7 +10,7 @@ version = "0.1.0"
 python = ">=3.14.7,<3.15"
 
 [pypi-dependencies]
-gnomad-api-caller = { path = ".", editable = true, extras = ["parquet"] }
+gnomad-api-cache = { path = ".", editable = true, extras = ["parquet"] }
 
 # Dev-only tools.
 [feature.dev.pypi-dependencies]
