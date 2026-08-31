@@ -3,7 +3,7 @@
     from gnomad_api_cache import VariantCache, read_vcf
 
     with VariantCache("gnomad.sqlite") as cache:
-        print(cache.fetch_vcf("cohort.vcf.gz"))
+        print(cache.fetch("cohort.vcf.gz"))
         cache.to_parquet("annotations.parquet")
 """
 

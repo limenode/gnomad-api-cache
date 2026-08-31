@@ -52,6 +52,12 @@ def _looks_like_vcf_path(text: str) -> bool:
 # --- row -> key functions ------------------------------------------------
 
 
+def _key_from_key(row: Any) -> VariantKey:
+    if not isinstance(row, VariantKey):
+        raise InvalidVariantError(f"not a VariantKey: {row!r}", "malformed_row")
+    return row
+
+
 def _key_from_id(row: Any) -> VariantKey:
     return VariantKey.from_id(str(row))
 
@@ -249,7 +255,7 @@ def to_variant_keys(
     rows = chain([first], iterator)
 
     if isinstance(first, VariantKey):
-        return [key for key in rows if isinstance(key, VariantKey)]
+        return list(collect(rows, _key_from_key, on_error=on_error))
     if isinstance(first, (str, bytes)):
         return read_ids(rows, on_error=on_error)
     if isinstance(first, Mapping):

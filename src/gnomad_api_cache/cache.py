@@ -26,15 +26,11 @@ from __future__ import annotations
 import json
 import sqlite3
 import zlib
-from collections.abc import Callable, Iterator, Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
-    # Annotation-only. Importing cyvcf2 here would mean every VariantCache
-    # user pays for it, including those feeding in dicts or a dataframe.
-    from cyvcf2 import Variant
-
     from gnomad_api_cache.fetch import FetchSummary
 
 from gnomad_api_cache._utils import _chunked, _now
@@ -312,21 +308,3 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
         from gnomad_api_cache import fetch as _fetch
 
         return _fetch.fetch_into(self, variants, **kwargs)
-
-    def fetch_vcf(
-        self,
-        vcf_path: str | Path,
-        retry_errors: bool = True,
-        retry_not_found: bool = False,
-        filter_function: Callable[[Variant], bool] | None = None,
-    ) -> FetchSummary:
-        """Read a VCF and fetch missing records into this cache."""
-        from gnomad_api_cache import fetch as _fetch
-        from gnomad_api_cache.adapters import vcf_adapter
-
-        return _fetch.fetch_into(
-            self,
-            vcf_adapter.read_vcf(vcf_path, filter_function=filter_function),
-            retry_errors=retry_errors,
-            retry_not_found=retry_not_found,
-        )
