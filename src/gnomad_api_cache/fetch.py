@@ -3,13 +3,13 @@ from __future__ import annotations
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
-from pathlib import Path
 from typing import Any
 
 import requests
 from tqdm import tqdm
 
 from gnomad_api_cache._utils import _chunked
+from gnomad_api_cache.adapters.record_adapter import to_variant_keys
 from gnomad_api_cache.cache import VariantCache
 from gnomad_api_cache.client import post_gnomad
 from gnomad_api_cache.keys import VariantKey
@@ -85,16 +85,22 @@ def _fetch_batches(
 
 def fetch_into(
     cache: VariantCache,
-    variants: list[VariantKey],
+    variants: Any,
     retry_errors: bool = True,
     retry_not_found: bool = False,
     delay: float = REQUEST_DELAY_SECONDS,
 ) -> FetchSummary:
     """Populate an open cache with gnomAD records for `variants`.
 
+    `variants` is anything record_adapter.to_variant_keys accepts: VariantKey
+    objects, id strings, 4-tuples, row mappings, a dataframe, or a VCF path.
+    Coercing here rather than in each caller means every entry point takes the
+    same inputs.
+
     The cache is left open: it belongs to the caller, who may well want to
     export from it next.
     """
+    variants = to_variant_keys(variants)
     variants_to_fetch = cache.needs_query(
         variants,
         retry_errors=retry_errors,
@@ -136,14 +142,3 @@ def fetch_into(
             f"errors; re-run to retry them."
         )
     return summary
-
-
-def fetch_gnomad(
-    variants: list[VariantKey],
-    cache_file: str | Path,
-    **kwargs: Any,
-) -> FetchSummary:
-    """Populate a cache file with gnomAD records for `variants`,
-    creating the cache if it does not exist."""
-    with VariantCache(cache_file) as cache:
-        return fetch_into(cache, variants, **kwargs)

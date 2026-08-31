@@ -29,9 +29,12 @@ import zlib
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self
-from cyvcf2 import Variant
 
 if TYPE_CHECKING:
+    # Annotation-only. Importing cyvcf2 here would mean every VariantCache
+    # user pays for it, including those feeding in dicts or a dataframe.
+    from cyvcf2 import Variant
+
     from gnomad_api_cache.fetch import FetchSummary
 
 from gnomad_api_cache._utils import _chunked, _now
@@ -300,8 +303,12 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
             )
         }
 
-    def fetch(self, variants: list[VariantKey], **kwargs) -> FetchSummary:
-        """Fetch missing records into this cache. See fetch.fetch_into."""
+    def fetch(self, variants: Any, **kwargs) -> FetchSummary:
+        """Fetch missing records into this cache.
+
+        Accepts VariantKey objects, gnomAD id strings, (chrom, pos, ref, alt)
+        tuples, row mappings, a dataframe, or a VCF path. See fetch.fetch_into.
+        """
         from gnomad_api_cache import fetch as _fetch
 
         return _fetch.fetch_into(self, variants, **kwargs)
@@ -319,10 +326,7 @@ class VariantCache(Mapping[str, "dict[str, Any] | None"]):
 
         return _fetch.fetch_into(
             self,
-            vcf_adapter.read_vcf(
-                vcf_path,
-                filter_function=filter_function
-            ),
+            vcf_adapter.read_vcf(vcf_path, filter_function=filter_function),
             retry_errors=retry_errors,
             retry_not_found=retry_not_found,
         )

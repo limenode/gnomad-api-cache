@@ -66,7 +66,7 @@ jobs:
         run: |
           gnomad-api-cache --version
           python -m gnomad_api_cache --help > /dev/null
-          python -c "from gnomad_api_cache import VariantCache, read_vcf, fetch_gnomad"
+          python -c "from gnomad_api_cache import VariantCache, read_vcf, fetch_into, to_variant_keys"
 
   publish-testpypi:
     name: Publish to TestPyPI

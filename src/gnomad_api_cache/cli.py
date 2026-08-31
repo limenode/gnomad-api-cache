@@ -218,8 +218,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         None if args.require_build.lower() == ANY_BUILD else args.require_build
     )
 
-    # Imported here rather than at module scope so --help and --version stay
-    # fast and do not require cyvcf2 to be importable.
     from gnomad_api_cache.adapters.vcf_adapter import BuildMismatchError, read_vcf
     from gnomad_api_cache.cache import VariantCache
 
