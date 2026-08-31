@@ -53,34 +53,58 @@ gnomad-api-cache -i cohort.vcf.gz -c gnomad.sqlite
 ```python
 from gnomad_api_cache import VariantCache
 
+variant_ids = ["1-55051215-G-A", "M-8993-T-C", ...]
+
 with VariantCache("gnomad.sqlite") as cache:
-    summary = cache.fetch_vcf("cohort.vcf.gz")
-    print(summary)  # 1234 requested, 0 already cached, 1200 fetched, ...
+    summary = cache.fetch(variant_ids)
+    print(summary)  # 1234 requested, 234 already cached, 1000 fetched, ...
 
     cache.to_parquet("annotations.parquet")
     cache.to_csv("annotations.csv")
 ```
 
-Pass a `filter_function(cyvcf2.Variant) -> bool` to decide which variants are worth querying:
+`cache.fetch` takes in gnomAD id strings (hyphen- or colon-separated), 
+`(chrom, pos, ref, alt)` tuples, row dicts, a dataframe, or a VCF path.
+
+```python
+with VariantCache("gnomad.sqlite") as cache:
+    cache.fetch(df)  # any pandas/polars/duckdb frame with chrom/pos/ref/alt columns
+    cache.fetch("cohort.vcf.gz")
+```
+
+Unusable rows are skipped and tallied; pass `on_error="raise"` to fail on the first one instead.
+
+Reading the VCF yourself lets you filter before querying.
+Define a function of the form `filter_function(cyvcf2.Variant) -> bool` 
+and pass it to `read_vcf` to only fetch variants that pass the filter:
 
 ```python
 from cyvcf2 import Variant
-from gnomad_api_cache import VariantCache
+from gnomad_api_cache import VariantCache, read_vcf
 
 def rare_only(variant: Variant) -> bool:
     af = variant.INFO.get("gnomad41_exome_AF", 0)
     return float(0 if af == "." else af) <= 0.05
 
 with VariantCache("gnomad.sqlite") as cache:
-    cache.fetch_vcf("cohort.vcf.gz", filter_function=rare_only)
+    cache.fetch(read_vcf("cohort.vcf.gz", filter_function=rare_only))
 ```
 
 An open cache is a read-only `Mapping` keyed by `chrom-pos-ref-alt`, so cached
-records are available without another request:
+records can be retrieved using dictionary-like syntax:
 
 ```python
-record = cache["1-55051215-G-A"]  # None if gnomAD has no such variant
-print(len(cache), cache.status_counts())
+record = cache["1-55051215-G-A"]  # dict, or None if gnomAD has no such variant
+```
+
+`to_variant_keys` builds those keys from any input `fetch` takes, so lookup keys
+do not need to be manually constructed:
+
+```python
+from gnomad_api_cache import to_variant_keys
+
+for key in to_variant_keys([("chr1", 55051215, "G", "A")]):
+    record = cache[key.id]  # key.id == "1-55051215-G-A"
 ```
 
 ## Acknowledgement & Citation
